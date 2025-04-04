@@ -14,6 +14,7 @@ const setTodo = asyncHandler(async (request, response) => {
     }
     const todo = await Todo.create({
         text: request.body.text,
+        caterogy: request.body.caterogy,
         user: request.user.id
     });
     response.set(200).json(todo);
