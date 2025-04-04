@@ -6,6 +6,10 @@ const todoSchema = mongoose.Schema(
             type: String,
             required: [true, 'Please add a text value'],
         },
+        category: {
+            type: String,
+            default: 'General',
+        },
         user: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
