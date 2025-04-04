@@ -1,8 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const Todo = require('../models/toDoSchema');
+const User = require('../models/userSchema');
 
 const getTodo = asyncHandler(async (request, response) => {
-    const todo = await Todo.find();
+    const todo = await Todo.find({ user: request.user.id });
     response.set(200).json(todo);
 })
 
@@ -13,16 +14,30 @@ const setTodo = asyncHandler(async (request, response) => {
     }
     const todo = await Todo.create({
         text: request.body.text,
+        user: request.user.id
     });
     response.set(200).json(todo);
 })
 
 const updateTodo = asyncHandler(async (request, response) => {
+
+    const user = await User.findById(request.user.id);
+
+    if(!user){
+        response.status(401);
+        throw new Error('Invalid User');
+    }
+
     const todo = await Todo.findById(request.params.id);
 
     if(!todo){
         response.set(400);
         throw new Error('Todo item not found');
+    }
+
+    if(todo.user.toString() !== user.id) {
+        response.status(401);
+        throw new Error('User is not authorized to access this Todo Item');
     }
 
     const updatedTodo = await Todo.findByIdAndUpdate(request.params.id, request.body, {
@@ -33,11 +48,24 @@ const updateTodo = asyncHandler(async (request, response) => {
 })
 
 const deleteTodo = asyncHandler(async (request, response) => {
+    
+    const user = await User.findById(request.user.id);
+
+    if(!user){
+        response.status(401);
+        throw new Error('Invalid User');
+    }
+
     const todo = await Todo.findById(request.params.id);
 
     if(!todo){
         response.set(400);
         throw new Error('Todo item not found');
+    }
+
+    if(todo.user.toString() !== user.id) {
+        response.status(401);
+        throw new Error('User is not authorized to access this Todo Item');
     }
 
     await Todo.findByIdAndDelete(request.params.id); // This function takes id as parameter and deletes the corresponding object from the DB
